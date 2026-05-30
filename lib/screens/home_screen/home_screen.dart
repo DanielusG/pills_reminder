@@ -4,6 +4,7 @@ import '../../services/notification_service.dart';
 import '../../services/pill_service.dart';
 import '../add_pill_screen/add_pill_screen.dart';
 import '../history_screen/history_screen.dart';
+import '../settings_screen/settings_screen.dart';
 import 'intake_dialog.dart';
 import 'overdue_section.dart';
 import 'pills_list_section.dart';
@@ -114,6 +115,13 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Pill Reminder'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
+            tooltip: 'Impostazioni',
+          ),
           IconButton(
             icon: const Icon(Icons.history),
             onPressed: () => Navigator.of(context).push(

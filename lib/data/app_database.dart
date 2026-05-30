@@ -329,6 +329,52 @@ class AppDatabase {
     ''');
   }
 
+  // ── Metodi raw per Import/Export ──
+
+  /// Restituisce tutte le pills come mappe grezze (per export JSON)
+  Future<List<Map<String, dynamic>>> getAllPillsRaw() async {
+    final db = await database;
+    return db.query('pills');
+  }
+
+  /// Restituisce tutti gli intakes come mappe grezze
+  Future<List<Map<String, dynamic>>> getAllIntakesRaw() async {
+    final db = await database;
+    return db.query('pill_intakes');
+  }
+
+  /// Restituisce tutti i dosage changes come mappe grezze
+  Future<List<Map<String, dynamic>>> getAllDosageChangesRaw() async {
+    final db = await database;
+    return db.query('pill_dosage_changes');
+  }
+
+  /// Cancella tutti i dati (per import)
+  Future<void> truncateAllTables() async {
+    final db = await database;
+    await db.delete('pill_intakes');
+    await db.delete('pill_dosage_changes');
+    await db.delete('pills');
+  }
+
+  /// Inserisce una pillola mantenendo l'ID originale
+  Future<void> insertPillRaw(Map<String, dynamic> map) async {
+    final db = await database;
+    await db.insert('pills', map);
+  }
+
+  /// Inserisce un intake mantenendo l'ID originale
+  Future<void> insertIntakeRaw(Map<String, dynamic> map) async {
+    final db = await database;
+    await db.insert('pill_intakes', map);
+  }
+
+  /// Inserisce un dosage change mantenendo l'ID originale
+  Future<void> insertDosageChangeRaw(Map<String, dynamic> map) async {
+    final db = await database;
+    await db.insert('pill_dosage_changes', map);
+  }
+
   /// Chiude il database
   Future<void> close() async {
     final db = await database;
