@@ -8,6 +8,8 @@ class Pill {
   final String time; // formato "HH:MM"
   final String quantity;
   final DateTime createdAt;
+  final int? totalDoses;         // target dosi totali (null = nessun target)
+  final int? totalIntakeCount;   // conteggio storico assunzioni (null = non caricato)
 
   Pill({
     this.id,
@@ -15,6 +17,8 @@ class Pill {
     required this.time,
     required this.quantity,
     required this.createdAt,
+    this.totalDoses,
+    this.totalIntakeCount,
   });
 
   Map<String, Object?> toMap() {
@@ -27,6 +31,9 @@ class Pill {
     if (id != null) {
       map['id'] = id;
     }
+    if (totalDoses != null) {
+      map['total_doses'] = totalDoses;
+    }
     return map;
   }
 
@@ -37,16 +44,24 @@ class Pill {
       time: map['time'] as String,
       quantity: map['quantity'] as String,
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
+      totalDoses: map['total_doses'] as int?,
+      totalIntakeCount: map['total_intake_count'] as int?,
     );
   }
 
-  Pill copyWith({String? name, String? time, String? quantity}) {
+  Pill copyWith({
+    String? name,
+    String? time,
+    String? quantity,
+    int? totalDoses,
+  }) {
     return Pill(
       id: id,
       name: name ?? this.name,
       time: time ?? this.time,
       quantity: quantity ?? this.quantity,
       createdAt: createdAt,
+      totalDoses: totalDoses ?? this.totalDoses,
     );
   }
 }
@@ -144,7 +159,7 @@ class AppDatabase {
 
     return openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createTables,
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -159,6 +174,9 @@ class AppDatabase {
             )
           ''');
         }
+        if (oldVersion < 3) {
+          await db.execute('ALTER TABLE pills ADD COLUMN total_doses INTEGER');
+        }
       },
     );
   }
@@ -170,7 +188,8 @@ class AppDatabase {
         name TEXT NOT NULL,
         time TEXT NOT NULL,
         quantity TEXT NOT NULL,
-        created_at INTEGER NOT NULL
+        created_at INTEGER NOT NULL,
+        total_doses INTEGER
       )
     ''');
 
@@ -201,6 +220,7 @@ class AppDatabase {
     required String name,
     required String time,
     required String quantity,
+    int? totalDoses,
   }) async {
     final db = await database;
     final now = DateTime.now();
@@ -209,6 +229,7 @@ class AppDatabase {
       time: time,
       quantity: quantity,
       createdAt: now,
+      totalDoses: totalDoses,
     ).toMap());
 
     // Entry iniziale nel log dei dosaggi
@@ -247,7 +268,13 @@ class AppDatabase {
 
   Future<List<Pill>> getAllPills() async {
     final db = await database;
-    final maps = await db.query('pills', orderBy: 'time ASC');
+    final maps = await db.rawQuery('''
+      SELECT p.*, COUNT(pi.id) AS total_intake_count
+      FROM pills p
+      LEFT JOIN pill_intakes pi ON p.id = pi.pill_id
+      GROUP BY p.id
+      ORDER BY p.time ASC
+    ''');
     return maps.map((map) => Pill.fromMap(map)).toList();
   }
 

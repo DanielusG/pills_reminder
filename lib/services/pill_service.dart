@@ -11,11 +11,13 @@ class PillService {
     required String name,
     required String time,
     required String quantity,
+    int? totalDoses,
   }) async {
     final id = await _db.insertPill(
       name: name,
       time: time,
       quantity: quantity,
+      totalDoses: totalDoses,
     );
     final pill = await _db.getPillById(id);
     if (pill != null) {

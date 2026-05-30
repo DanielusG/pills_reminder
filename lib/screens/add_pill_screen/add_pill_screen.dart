@@ -4,6 +4,7 @@ import '../../services/pill_service.dart';
 import 'name_field.dart';
 import 'quantity_field.dart';
 import 'time_picker_field.dart';
+import 'total_doses_field.dart';
 
 /// Schermata per aggiungere/modificare una pillola
 class AddPillScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class _AddPillScreenState extends State<AddPillScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _quantityController;
+  late final TextEditingController _totalDosesController;
   late TimeOfDay _selectedTime;
 
   final _service = PillService();
@@ -29,6 +31,9 @@ class _AddPillScreenState extends State<AddPillScreen> {
     final pill = widget.pill;
     _nameController = TextEditingController(text: pill?.name ?? '');
     _quantityController = TextEditingController(text: pill?.quantity ?? '');
+    _totalDosesController = TextEditingController(
+      text: pill?.totalDoses?.toString() ?? '',
+    );
 
     if (pill != null) {
       final parts = pill.time.split(':');
@@ -45,6 +50,7 @@ class _AddPillScreenState extends State<AddPillScreen> {
   void dispose() {
     _nameController.dispose();
     _quantityController.dispose();
+    _totalDosesController.dispose();
     super.dispose();
   }
 
@@ -57,6 +63,10 @@ class _AddPillScreenState extends State<AddPillScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final time = _formatTime(_selectedTime);
+    final totalDosesText = _totalDosesController.text.trim();
+    final totalDoses = totalDosesText.isEmpty
+        ? null
+        : int.tryParse(totalDosesText);
 
     try {
       if (widget.pill == null) {
@@ -64,12 +74,14 @@ class _AddPillScreenState extends State<AddPillScreen> {
           name: _nameController.text.trim(),
           time: time,
           quantity: _quantityController.text.trim(),
+          totalDoses: totalDoses,
         );
       } else {
         final updated = widget.pill!.copyWith(
           name: _nameController.text.trim(),
           time: time,
           quantity: _quantityController.text.trim(),
+          totalDoses: totalDoses,
         );
         await _service.updatePill(updated);
       }
@@ -106,6 +118,8 @@ class _AddPillScreenState extends State<AddPillScreen> {
               ),
               const SizedBox(height: 16),
               QuantityField(controller: _quantityController),
+              const SizedBox(height: 16),
+              TotalDosesField(controller: _totalDosesController),
               const SizedBox(height: 32),
               FilledButton(
                 onPressed: _save,

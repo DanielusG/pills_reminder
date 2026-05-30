@@ -64,6 +64,28 @@ class _OverduePillCard extends StatelessWidget {
     required this.onTaken,
   });
 
+  Widget _buildSubtitle(Pill pill) {
+    final count = pill.totalIntakeCount;
+    if (count == null || count == 0) {
+      return Text('${pill.quantity} • ${pill.time}');
+    }
+
+    final countText = pill.totalDoses != null
+        ? '$count/${pill.totalDoses} volte'
+        : '$count volte';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('${pill.quantity} • ${pill.time}'),
+        Text(
+          countText,
+          style: const TextStyle(fontSize: 12, color: Colors.grey),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -71,7 +93,7 @@ class _OverduePillCard extends StatelessWidget {
       child: ListTile(
         leading: const Icon(Icons.medication, color: Colors.orange),
         title: Text(pill.name),
-        subtitle: Text('${pill.quantity} • ${pill.time}'),
+        subtitle: _buildSubtitle(pill),
         trailing: FilledButton.icon(
           onPressed: onTaken,
           icon: const Icon(Icons.check),

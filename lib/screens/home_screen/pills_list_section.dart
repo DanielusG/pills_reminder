@@ -70,6 +70,28 @@ class PillCardWidget extends StatelessWidget {
     required this.onDelete,
   });
 
+  Widget _buildSubtitle(Pill pill) {
+    final count = pill.totalIntakeCount;
+    if (count == null || count == 0) {
+      return Text('${pill.quantity} • ${pill.time}');
+    }
+
+    final countText = pill.totalDoses != null
+        ? '$count/${pill.totalDoses} volte'
+        : '$count volte';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('${pill.quantity} • ${pill.time}'),
+        Text(
+          countText,
+          style: const TextStyle(fontSize: 12, color: Colors.grey),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -79,7 +101,7 @@ class PillCardWidget extends StatelessWidget {
       child: ListTile(
         leading: const Icon(Icons.medication, color: Colors.blue),
         title: Text(pill.name, style: theme.textTheme.titleMedium),
-        subtitle: Text('${pill.quantity} • ${pill.time}'),
+        subtitle: _buildSubtitle(pill),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
