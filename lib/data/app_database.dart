@@ -51,6 +51,46 @@ class Pill {
   }
 }
 
+/// Modello cambiamento di dosaggio
+class DosageChange {
+  final int? id;
+  final int pillId;
+  final String oldDosage;
+  final String newDosage;
+  final DateTime changedAt;
+
+  DosageChange({
+    this.id,
+    required this.pillId,
+    required this.oldDosage,
+    required this.newDosage,
+    required this.changedAt,
+  });
+
+  Map<String, Object?> toMap() {
+    final map = <String, Object?>{
+      'pill_id': pillId,
+      'old_dosage': oldDosage,
+      'new_dosage': newDosage,
+      'changed_at': changedAt.millisecondsSinceEpoch,
+    };
+    if (id != null) {
+      map['id'] = id;
+    }
+    return map;
+  }
+
+  factory DosageChange.fromMap(Map<String, Object?> map) {
+    return DosageChange(
+      id: map['id'] as int?,
+      pillId: map['pill_id'] as int,
+      oldDosage: map['old_dosage'] as String,
+      newDosage: map['new_dosage'] as String,
+      changedAt: DateTime.fromMillisecondsSinceEpoch(map['changed_at'] as int),
+    );
+  }
+}
+
 /// Modello assunzione
 class PillIntake {
   final int? id;
@@ -104,28 +144,55 @@ class AppDatabase {
 
     return openDatabase(
       path,
-      version: 1,
-      onCreate: (db, version) async {
-        await db.execute('''
-          CREATE TABLE pills (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            time TEXT NOT NULL,
-            quantity TEXT NOT NULL,
-            created_at INTEGER NOT NULL
-          )
-        ''');
-
-        await db.execute('''
-          CREATE TABLE pill_intakes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            pill_id INTEGER NOT NULL,
-            taken_at INTEGER NOT NULL,
-            FOREIGN KEY (pill_id) REFERENCES pills(id) ON DELETE CASCADE
-          )
-        ''');
+      version: 2,
+      onCreate: _createTables,
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('''
+            CREATE TABLE pill_dosage_changes (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              pill_id INTEGER NOT NULL,
+              old_dosage TEXT NOT NULL,
+              new_dosage TEXT NOT NULL,
+              changed_at INTEGER NOT NULL,
+              FOREIGN KEY (pill_id) REFERENCES pills(id) ON DELETE CASCADE
+            )
+          ''');
+        }
       },
     );
+  }
+
+  Future<void> _createTables(Database db, int version) async {
+    await db.execute('''
+      CREATE TABLE pills (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        time TEXT NOT NULL,
+        quantity TEXT NOT NULL,
+        created_at INTEGER NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE pill_intakes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        pill_id INTEGER NOT NULL,
+        taken_at INTEGER NOT NULL,
+        FOREIGN KEY (pill_id) REFERENCES pills(id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE pill_dosage_changes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        pill_id INTEGER NOT NULL,
+        old_dosage TEXT NOT NULL,
+        new_dosage TEXT NOT NULL,
+        changed_at INTEGER NOT NULL,
+        FOREIGN KEY (pill_id) REFERENCES pills(id) ON DELETE CASCADE
+      )
+    ''');
   }
 
   // ── Pills CRUD ──
@@ -136,16 +203,40 @@ class AppDatabase {
     required String quantity,
   }) async {
     final db = await database;
-    return db.insert('pills', Pill(
+    final now = DateTime.now();
+    final pillId = await db.insert('pills', Pill(
       name: name,
       time: time,
       quantity: quantity,
-      createdAt: DateTime.now(),
+      createdAt: now,
     ).toMap());
+
+    // Entry iniziale nel log dei dosaggi
+    await db.insert('pill_dosage_changes', DosageChange(
+      pillId: pillId,
+      oldDosage: '',
+      newDosage: quantity,
+      changedAt: now,
+    ).toMap());
+
+    return pillId;
   }
 
   Future<int> updatePill(Pill pill) async {
     final db = await database;
+    final current = await getPillById(pill.id!);
+    if (current == null) return 0;
+
+    // Log del cambiamento di dosaggio
+    if (current.quantity != pill.quantity) {
+      await db.insert('pill_dosage_changes', DosageChange(
+        pillId: pill.id!,
+        oldDosage: current.quantity,
+        newDosage: pill.quantity,
+        changedAt: DateTime.now(),
+      ).toMap());
+    }
+
     return db.update('pills', pill.toMap(), where: 'id = ?', whereArgs: [pill.id]);
   }
 
@@ -210,6 +301,32 @@ class AppDatabase {
   Future<int> deleteIntakesForPill(int pillId) async {
     final db = await database;
     return db.delete('pill_intakes', where: 'pill_id = ?', whereArgs: [pillId]);
+  }
+
+  // ── Query per la history combinata ──
+
+  /// Intake con nome pillola (JOIN), ordinati per taken_at ASC
+  Future<List<Map<String, Object?>>> getAllIntakesWithPillName() async {
+    final db = await database;
+    return db.rawQuery('''
+      SELECT i.id, i.pill_id, i.taken_at, p.name AS pill_name
+      FROM pill_intakes i
+      LEFT JOIN pills p ON i.pill_id = p.id
+      WHERE p.id IS NOT NULL
+      ORDER BY i.taken_at ASC
+    ''');
+  }
+
+  /// Dosage changes con nome pillola (JOIN), ordinati per changed_at ASC
+  Future<List<Map<String, Object?>>> getAllDosageChangesWithPillName() async {
+    final db = await database;
+    return db.rawQuery('''
+      SELECT c.id, c.pill_id, c.old_dosage, c.new_dosage, c.changed_at, p.name AS pill_name
+      FROM pill_dosage_changes c
+      LEFT JOIN pills p ON c.pill_id = p.id
+      WHERE p.id IS NOT NULL
+      ORDER BY c.changed_at ASC
+    ''');
   }
 
   /// Chiude il database

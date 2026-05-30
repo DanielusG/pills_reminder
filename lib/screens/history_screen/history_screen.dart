@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/pill_service.dart';
+import 'dosage_change_card.dart';
 import 'intake_card.dart';
 
 /// Schermata storico delle assunzioni
@@ -12,7 +13,7 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   final _service = PillService();
-  List<IntakeRecord> _records = [];
+  List<HistoryEntry> _entries = [];
   bool _isLoading = true;
 
   @override
@@ -23,11 +24,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Future<void> _loadHistory() async {
     setState(() => _isLoading = true);
-    final records = await _service.getIntakeHistory();
+    final entries = await _service.getCombinedHistory();
     setState(() {
-      _records = records;
+      _entries = entries;
       _isLoading = false;
     });
+  }
+
+  Widget _buildEntry(HistoryEntry entry) {
+    switch (entry) {
+      case IntakeEntry():
+        return IntakeCard(entry: entry);
+      case DosageChangeEntry():
+        return DosageChangeCard(entry: entry);
+    }
   }
 
   @override
@@ -38,7 +48,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _records.isEmpty
+          : _entries.isEmpty
               ? const Center(
                   child: Text(
                     'Nessuna assunzione registrata.',
@@ -49,7 +59,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   onRefresh: _loadHistory,
                   child: ListView(
                     children: [
-                      ..._records.map((record) => IntakeCard(record: record)),
+                      ..._entries.map(_buildEntry),
                       const SizedBox(height: 80),
                     ],
                   ),

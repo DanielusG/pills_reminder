@@ -90,22 +90,59 @@ class PillService {
     );
   }
 
-  /// Ottiene lo storico delle assunzioni con nome farmaco
-  Future<List<IntakeRecord>> getIntakeHistory() async {
-    final intakes = await _db.getAllIntakes();
-    final records = <IntakeRecord>[];
+  /// History combinata: assunzioni + cambiamenti di dosaggio, ordinate per timestamp
+  Future<List<HistoryEntry>> getCombinedHistory() async {
+    final intakeMaps = await _db.getAllIntakesWithPillName();
+    final changeMaps = await _db.getAllDosageChangesWithPillName();
 
-    for (final intake in intakes) {
-      final pill = await _db.getPillById(intake.pillId);
-      if (pill != null) {
-        records.add(IntakeRecord(
-          pill: pill,
-          takenAt: intake.takenAt,
+    // Map per tracciare il dosaggio corrente di ogni pillola
+    final currentDosage = <int, String>{};
+    final entries = <HistoryEntry>[];
+
+    // Unisco tutto e ordino per timestamp crescente
+    final allItems = <_HistoryItem>[];
+    for (final map in intakeMaps) {
+      allItems.add(_HistoryItem(
+        type: _HistoryItemType.intake,
+        pillId: map['pill_id'] as int,
+        pillName: map['pill_name'] as String,
+        timestamp: DateTime.fromMillisecondsSinceEpoch(map['taken_at'] as int),
+      ));
+    }
+    for (final map in changeMaps) {
+      allItems.add(_HistoryItem(
+        type: _HistoryItemType.dosageChange,
+        pillId: map['pill_id'] as int,
+        pillName: map['pill_name'] as String,
+        timestamp: DateTime.fromMillisecondsSinceEpoch(map['changed_at'] as int),
+        oldDosage: map['old_dosage'] as String,
+        newDosage: map['new_dosage'] as String,
+      ));
+    }
+    allItems.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    // Single pass: ricostruisco il dosaggio per ogni pillola
+    for (final item in allItems) {
+      if (item.type == _HistoryItemType.dosageChange) {
+        currentDosage[item.pillId] = item.newDosage!;
+        entries.add(DosageChangeEntry(
+          pillName: item.pillName,
+          oldDosage: item.oldDosage!,
+          newDosage: item.newDosage!,
+          timestamp: item.timestamp,
+        ));
+      } else {
+        final dosage = currentDosage[item.pillId] ?? 'N/D';
+        entries.add(IntakeEntry(
+          pillName: item.pillName,
+          dosage: dosage,
+          timestamp: item.timestamp,
         ));
       }
     }
 
-    return records;
+    // Inverso per il display (più recente prima)
+    return entries.reversed.toList();
   }
 
   /// Controlla se una pillola è stata assunta oggi
@@ -114,10 +151,61 @@ class PillService {
   }
 }
 
-/// Record che associa una pillola al momento dell'assunzione
-class IntakeRecord {
-  final Pill pill;
-  final DateTime takenAt;
+/// Entry base per la history combinata
+sealed class HistoryEntry {
+  String get pillName;
+  DateTime get timestamp;
+}
 
-  IntakeRecord({required this.pill, required this.takenAt});
+/// Assunzione di una pillola con dosaggio ricostruito
+class IntakeEntry implements HistoryEntry {
+  @override
+  final String pillName;
+  final String dosage;
+  @override
+  final DateTime timestamp;
+
+  IntakeEntry({
+    required this.pillName,
+    required this.dosage,
+    required this.timestamp,
+  });
+}
+
+/// Cambio di dosaggio di una pillola
+class DosageChangeEntry implements HistoryEntry {
+  @override
+  final String pillName;
+  final String oldDosage;
+  final String newDosage;
+  @override
+  final DateTime timestamp;
+
+  DosageChangeEntry({
+    required this.pillName,
+    required this.oldDosage,
+    required this.newDosage,
+    required this.timestamp,
+  });
+}
+
+/// Item intermedio per il merge cronologico
+enum _HistoryItemType { intake, dosageChange }
+
+class _HistoryItem {
+  final _HistoryItemType type;
+  final int pillId;
+  final String pillName;
+  final DateTime timestamp;
+  final String? oldDosage;
+  final String? newDosage;
+
+  _HistoryItem({
+    required this.type,
+    required this.pillId,
+    required this.pillName,
+    required this.timestamp,
+    this.oldDosage,
+    this.newDosage,
+  });
 }
