@@ -8,15 +8,15 @@ import 'package:share_plus/share_plus.dart';
 import '../data/app_database.dart';
 import 'notification_service.dart';
 
-/// Servizio per l'import/export dei dati (pills, intakes, dosage changes)
+/// Import/export service for app data (pills, intakes, dosage changes)
 class ImportExportService {
   final AppDatabase _db = AppDatabase();
   final NotificationService _notif = NotificationService();
 
-  /// Versione del formato backup
+  /// Backup format version
   static const int _backupVersion = 1;
 
-  /// Esporta tutti i dati in un file JSON e lo condivide via share intent
+  /// Export all data to a JSON file and share it
   Future<void> exportData() async {
     final pills = await _db.getAllPillsRaw();
     final intakes = await _db.getAllIntakesRaw();
@@ -47,30 +47,30 @@ class ImportExportService {
     return;
   }
 
-  /// Importa i dati da un file JSON (byte in memoria)
-  /// Sostituisce tutti i dati esistenti
+  /// Import data from a JSON file (in-memory bytes)
+  /// Replaces all existing data
   Future<void> importData(Uint8List bytes) async {
     final jsonString = utf8.decode(bytes);
     final Map<String, dynamic> backup = jsonDecode(jsonString);
 
-    // Validazione
+    // Validate
     if (!backup.containsKey('pills') ||
         !backup.containsKey('intakes') ||
         !backup.containsKey('dosageChanges')) {
-      throw const FormatException('File backup non valido: campi mancanti.');
+      throw const FormatException('Invalid backup file: missing fields.');
     }
 
     final int version = backup['version'] ?? 0;
     if (version != _backupVersion) {
       throw FormatException(
-        'Versione backup non supportata: $version (attesa: $_backupVersion).',
+        'Unsupported backup version: $version (expected: $_backupVersion).',
       );
     }
 
-    // Cancella tutte le notifiche esistenti
+    // Cancel all existing notifications
     await _notif.cancelAll();
 
-    // Truncate tabelle
+    // Truncate tables
     await _db.truncateAllTables();
 
     // Re-insert pills
@@ -91,7 +91,7 @@ class ImportExportService {
       await _db.insertDosageChangeRaw(dcMap);
     }
 
-    // Re-schedula le notifiche per ogni pillola
+    // Reschedule notifications for each pill
     for (final pillMap in pills) {
       final pill = Pill.fromMap(pillMap);
       await _notif.scheduleDailyNotification(

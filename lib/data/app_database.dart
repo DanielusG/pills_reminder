@@ -1,16 +1,16 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
-/// Modello pillola
+/// Pill model
 class Pill {
   final int? id;
   final String name;
-  final String time; // formato "HH:MM"
+  final String time; // "HH:MM" format
   final String quantity;
   final DateTime createdAt;
-  final int? totalDoses;         // target dosi totali (null = nessun target)
-  final bool isDisabled;         // pillola disabilitata (niente notifiche)
-  final int? totalIntakeCount;   // conteggio storico assunzioni (null = non caricato)
+  final int? totalDoses;         // target total doses (null = no target)
+  final bool isDisabled;         // disabled pill (no notifications)
+  final int? totalIntakeCount;   // total intake count (null = not loaded)
 
   Pill({
     this.id,
@@ -72,7 +72,7 @@ class Pill {
   }
 }
 
-/// Modello cambiamento di dosaggio
+/// Dosage change model
 class DosageChange {
   final int? id;
   final int pillId;
@@ -112,7 +112,7 @@ class DosageChange {
   }
 }
 
-/// Modello assunzione
+/// Pill intake model
 class PillIntake {
   final int? id;
   final int pillId;
@@ -144,7 +144,7 @@ class PillIntake {
   }
 }
 
-/// Database helper per le pillole
+/// Database helper
 class AppDatabase {
   static final AppDatabase _instance = AppDatabase._internal();
   static Database? _database;
@@ -244,7 +244,7 @@ class AppDatabase {
       isDisabled: isDisabled,
     ).toMap());
 
-    // Entry iniziale nel log dei dosaggi
+    // Initial dosage log entry
     await db.insert('pill_dosage_changes', DosageChange(
       pillId: pillId,
       oldDosage: '',
@@ -260,7 +260,7 @@ class AppDatabase {
     final current = await getPillById(pill.id!);
     if (current == null) return 0;
 
-    // Log del cambiamento di dosaggio
+    // Log dosage change
     if (current.quantity != pill.quantity) {
       await db.insert('pill_dosage_changes', DosageChange(
         pillId: pill.id!,
@@ -321,7 +321,7 @@ class AppDatabase {
     return maps.map((map) => PillIntake.fromMap(map)).toList();
   }
 
-  /// Controlla se una pillola è già stata assunta oggi
+  /// Check if a pill has been taken today
   Future<bool> isTakenToday(int pillId) async {
     final db = await database;
     final now = DateTime.now();
@@ -336,15 +336,15 @@ class AppDatabase {
     return (result.first.values.first as int) == 1;
   }
 
-  /// Elimina tutti gli intake associati a una pillola
+  /// Delete all intakes for a pill
   Future<int> deleteIntakesForPill(int pillId) async {
     final db = await database;
     return db.delete('pill_intakes', where: 'pill_id = ?', whereArgs: [pillId]);
   }
 
-  // ── Query per la history combinata ──
+  // ── Combined history queries ──
 
-  /// Intake con nome pillola (JOIN), ordinati per taken_at ASC
+  /// Intakes with pill name (JOIN), ordered by taken_at ASC
   Future<List<Map<String, Object?>>> getAllIntakesWithPillName() async {
     final db = await database;
     return db.rawQuery('''
@@ -356,7 +356,7 @@ class AppDatabase {
     ''');
   }
 
-  /// Dosage changes con nome pillola (JOIN), ordinati per changed_at ASC
+  /// Dosage changes with pill name (JOIN), ordered by changed_at ASC
   Future<List<Map<String, Object?>>> getAllDosageChangesWithPillName() async {
     final db = await database;
     return db.rawQuery('''
@@ -368,27 +368,27 @@ class AppDatabase {
     ''');
   }
 
-  // ── Metodi raw per Import/Export ──
+  // ── Raw methods for Import/Export ──
 
-  /// Restituisce tutte le pills come mappe grezze (per export JSON)
+  /// Return all pills as raw maps (for JSON export)
   Future<List<Map<String, dynamic>>> getAllPillsRaw() async {
     final db = await database;
     return db.query('pills');
   }
 
-  /// Restituisce tutti gli intakes come mappe grezze
+  /// Return all intakes as raw maps
   Future<List<Map<String, dynamic>>> getAllIntakesRaw() async {
     final db = await database;
     return db.query('pill_intakes');
   }
 
-  /// Restituisce tutti i dosage changes come mappe grezze
+  /// Return all dosage changes as raw maps
   Future<List<Map<String, dynamic>>> getAllDosageChangesRaw() async {
     final db = await database;
     return db.query('pill_dosage_changes');
   }
 
-  /// Cancella tutti i dati (per import)
+  /// Truncate all tables (for import)
   Future<void> truncateAllTables() async {
     final db = await database;
     await db.delete('pill_intakes');
@@ -396,25 +396,25 @@ class AppDatabase {
     await db.delete('pills');
   }
 
-  /// Inserisce una pillola mantenendo l'ID originale
+  /// Insert a pill preserving the original ID
   Future<void> insertPillRaw(Map<String, dynamic> map) async {
     final db = await database;
     await db.insert('pills', map);
   }
 
-  /// Inserisce un intake mantenendo l'ID originale
+  /// Insert an intake preserving the original ID
   Future<void> insertIntakeRaw(Map<String, dynamic> map) async {
     final db = await database;
     await db.insert('pill_intakes', map);
   }
 
-  /// Inserisce un dosage change mantenendo l'ID originale
+  /// Insert a dosage change preserving the original ID
   Future<void> insertDosageChangeRaw(Map<String, dynamic> map) async {
     final db = await database;
     await db.insert('pill_dosage_changes', map);
   }
 
-  /// Chiude il database
+  /// Close the database
   Future<void> close() async {
     final db = await database;
     db.close();

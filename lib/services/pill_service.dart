@@ -1,12 +1,12 @@
 import '../data/app_database.dart';
 import 'notification_service.dart';
 
-/// Servizio per la gestione delle pillole e delle assunzioni
+/// Pill and intake management service
 class PillService {
   final AppDatabase _db = AppDatabase();
   final NotificationService _notif = NotificationService();
 
-  /// Aggiunge una nuova pillola e schedula la notifica
+  /// Add a new pill and schedule notification
   Future<Pill> addPill({
     required String name,
     required String time,
@@ -33,16 +33,16 @@ class PillService {
     return pill!;
   }
 
-  /// Aggiorna una pillola esistente
+  /// Update an existing pill
   Future<void> updatePill(Pill pill) async {
     final current = await _db.getPillById(pill.id!);
     await _db.updatePill(pill);
 
     if (pill.isDisabled) {
-      // Pillola disabilitata → rimuovi notifica
+      // Disabled → cancel notification
       await _notif.cancelNotification(pill.id!);
     } else if (current == null || current.isDisabled) {
-      // Pillola appena abilitata → schedula notifica
+      // Just enabled → schedule notification
       await _notif.scheduleDailyNotification(
         id: pill.id!,
         name: pill.name,
@@ -50,7 +50,7 @@ class PillService {
         time: pill.time,
       );
     } else {
-      // Pillola già abilitata → ricancella e rischedula (es. orario cambiato)
+      // Already enabled → cancel and reschedule (e.g. time changed)
       await _notif.cancelNotification(pill.id!);
       await _notif.scheduleDailyNotification(
         id: pill.id!,
@@ -61,19 +61,19 @@ class PillService {
     }
   }
 
-  /// Elimina una pillola e la sua notifica
+  /// Delete a pill and its notification
   Future<void> deletePill(int id) async {
     await _notif.cancelNotification(id);
     await _db.deleteIntakesForPill(id);
     await _db.deletePill(id);
   }
 
-  /// Ottiene tutte le pillole ordinate per orario
+  /// Get all pills ordered by time
   Future<List<Pill>> getAllPills() async {
     return _db.getAllPills();
   }
 
-  /// Ottiene le pillole scadute (orario passato, non assunte oggi)
+  /// Get overdue pills (past time, not taken today)
   Future<List<Pill>> getOverduePills() async {
     final allPills = await _db.getAllPills();
     final now = DateTime.now();
@@ -104,7 +104,7 @@ class PillService {
     return overdue;
   }
 
-  /// Registra l'assunzione di una pillola
+  /// Log a pill intake
   Future<void> logIntake(int pillId) async {
     await _db.insertIntake(
       pillId: pillId,
@@ -112,16 +112,16 @@ class PillService {
     );
   }
 
-  /// History combinata: assunzioni + cambiamenti di dosaggio, ordinate per timestamp
+  /// Combined history: intakes + dosage changes, ordered by timestamp
   Future<List<HistoryEntry>> getCombinedHistory() async {
     final intakeMaps = await _db.getAllIntakesWithPillName();
     final changeMaps = await _db.getAllDosageChangesWithPillName();
 
-    // Map per tracciare il dosaggio corrente di ogni pillola
+    // Map to track current dosage per pill
     final currentDosage = <int, String>{};
     final entries = <HistoryEntry>[];
 
-    // Unisco tutto e ordino per timestamp crescente
+    // Merge all items and sort by ascending timestamp
     final allItems = <_HistoryItem>[];
     for (final map in intakeMaps) {
       allItems.add(_HistoryItem(
@@ -143,7 +143,7 @@ class PillService {
     }
     allItems.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
-    // Single pass: ricostruisco il dosaggio per ogni pillola
+    // Single pass: reconstruct dosage per pill
     for (final item in allItems) {
       if (item.type == _HistoryItemType.dosageChange) {
         currentDosage[item.pillId] = item.newDosage!;
@@ -163,23 +163,23 @@ class PillService {
       }
     }
 
-    // Inverso per il display (più recente prima)
+    // Reverse for display (most recent first)
     return entries.reversed.toList();
   }
 
-  /// Controlla se una pillola è stata assunta oggi
+  /// Check if a pill was taken today
   Future<bool> isTakenToday(int pillId) async {
     return _db.isTakenToday(pillId);
   }
 }
 
-/// Entry base per la history combinata
+/// Base entry for combined history
 sealed class HistoryEntry {
   String get pillName;
   DateTime get timestamp;
 }
 
-/// Assunzione di una pillola con dosaggio ricostruito
+/// Pill intake with reconstructed dosage
 class IntakeEntry implements HistoryEntry {
   @override
   final String pillName;
@@ -194,7 +194,7 @@ class IntakeEntry implements HistoryEntry {
   });
 }
 
-/// Cambio di dosaggio di una pillola
+/// Pill dosage change
 class DosageChangeEntry implements HistoryEntry {
   @override
   final String pillName;
@@ -211,7 +211,7 @@ class DosageChangeEntry implements HistoryEntry {
   });
 }
 
-/// Item intermedio per il merge cronologico
+/// Intermediate item for chronological merge
 enum _HistoryItemType { intake, dosageChange }
 
 class _HistoryItem {

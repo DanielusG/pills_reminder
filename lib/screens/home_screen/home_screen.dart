@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/app_database.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/notification_service.dart';
 import '../../services/pill_service.dart';
 import '../add_pill_screen/add_pill_screen.dart';
@@ -70,17 +71,17 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (_) => AlertDialog(
         icon: const Icon(Icons.delete, color: Colors.red),
-        title: const Text('Elimina pillola?'),
-        content: const Text('Questa azione eliminerà anche lo storico delle assunzioni.'),
+        title: Text(S.of(context)!.deleteDialogTitle),
+        content: Text(S.of(context)!.deleteDialogContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Annulla'),
+            child: Text(S.of(context)!.cancelButton),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Elimina'),
+            child: Text(S.of(context)!.deleteButton),
           ),
         ],
       ),
@@ -113,21 +114,21 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pill Reminder'),
+        title: Text(S.of(context)!.appName),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const SettingsScreen()),
             ),
-            tooltip: 'Impostazioni',
+            tooltip: S.of(context)!.settingsTitle,
           ),
           IconButton(
             icon: const Icon(Icons.history),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const HistoryScreen()),
             ),
-            tooltip: 'Storico assunzioni',
+            tooltip: S.of(context)!.historyTitle,
           ),
         ],
       ),
@@ -154,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _addPill,
         icon: const Icon(Icons.add),
-        label: const Text('Nuova pillola'),
+        label: Text(S.of(context)!.addPillFab),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Dialog per confermare l'assunzione di una pillola
 class IntakeDialog extends StatelessWidget {
@@ -15,16 +16,16 @@ class IntakeDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       icon: const Icon(Icons.medication, color: Colors.green),
-      title: Text('Hai assunto $pillName?'),
+      title: Text(S.of(context)!.intakeDialogTitle(pillName)),
       content: Text(quantity),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('No'),
+          child: Text(S.of(context)!.noButton),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('Sì, assunta'),
+          child: Text(S.of(context)!.yesTakenButton),
         ),
       ],
     );

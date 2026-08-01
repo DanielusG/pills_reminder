@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/app_database.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Sezione delle pillole scadute da assumere
 class OverdueSection extends StatelessWidget {
@@ -36,7 +37,7 @@ class OverdueSection extends StatelessWidget {
               const Icon(Icons.warning_amber_rounded, color: Colors.orange),
               const SizedBox(width: 8),
               Text(
-                'Da assumere',
+                S.of(context)!.overdueSection,
                 style: theme.textTheme.titleLarge?.copyWith(
                   color: Colors.orange,
                   fontWeight: FontWeight.bold,
@@ -64,15 +65,16 @@ class _OverduePillCard extends StatelessWidget {
     required this.onTaken,
   });
 
-  Widget _buildSubtitle(Pill pill) {
+  Widget _buildSubtitle(BuildContext context, Pill pill) {
     final count = pill.totalIntakeCount;
     if (count == null || count == 0) {
       return Text('${pill.quantity} • ${pill.time}');
     }
 
+    final s = S.of(context)!;
     final countText = pill.totalDoses != null
-        ? '$count/${pill.totalDoses} volte'
-        : '$count volte';
+        ? s.intakeCountWithTarget('$count', '${pill.totalDoses}')
+        : s.intakeCountNoTarget('$count');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,11 +95,11 @@ class _OverduePillCard extends StatelessWidget {
       child: ListTile(
         leading: const Icon(Icons.medication, color: Colors.orange),
         title: Text(pill.name),
-        subtitle: _buildSubtitle(pill),
+        subtitle: _buildSubtitle(context, pill),
         trailing: FilledButton.icon(
           onPressed: onTaken,
           icon: const Icon(Icons.check),
-          label: const Text('Assunta'),
+          label: Text(S.of(context)!.takenButton),
         ),
       ),
     );

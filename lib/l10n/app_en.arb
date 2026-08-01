@@ -1,0 +1,76 @@
+{
+  "@@locale": "en",
+
+  "appName": "Pill Reminder",
+  "appDescription": "Track your medication with daily reminders.",
+
+  "myPills": "Your pills",
+  "noPillsYet": "No pills scheduled.\nPress + to add one.",
+
+  "overdueSection": "To take",
+  "takenButton": "Taken",
+
+  "deleteDialogTitle": "Delete pill?",
+  "deleteDialogContent": "This will also delete the intake history.",
+  "cancelButton": "Cancel",
+  "deleteButton": "Delete",
+
+  "addPillFab": "New pill",
+  "editTooltip": "Edit",
+  "deleteTooltip": "Delete",
+
+  "addPillTitle": "New pill",
+  "editPillTitle": "Edit pill",
+  "saveChangesButton": "Save changes",
+  "addPillButton": "Add pill",
+
+  "medicationNameLabel": "Medication name",
+  "medicationNameHint": "e.g. Ibuprofen, Omeprazole",
+  "medicationNameValidator": "Enter the medication name",
+
+  "intakeTimeLabel": "Intake time",
+
+  "dosageLabel": "Quantity / Dosage",
+  "dosageHint": "e.g. 1 tablet, 5ml, 2 capsules",
+  "dosageValidator": "Enter the dosage",
+
+  "totalDosesLabel": "Total doses (optional)",
+  "totalDosesHint": "e.g. 30",
+  "totalDosesValidator": "Enter a valid number greater than 0",
+
+  "disableLabel": "Disable",
+  "disableSubtitle": "Stop sending notifications for this pill",
+
+  "errorPrefix": "Error: {error}",
+
+  "intakeDialogTitle": "Have you taken {pillName}?",
+  "noButton": "No",
+  "yesTakenButton": "Yes, taken",
+
+  "historyTitle": "Intake history",
+  "noHistoryYet": "No intake recorded.",
+
+  "settingsTitle": "Settings",
+  "exportDataTitle": "Export data",
+  "exportDataSubtitle": "Save medications and history to a JSON file",
+  "importDataTitle": "Import data",
+  "importDataSubtitle": "Restore from a backup file",
+
+  "importConfirmTitle": "Replace data?",
+  "importConfirmContent": "Importing will delete all current data and replace it with the backup data.\nThis action cannot be undone.",
+  "importButton": "Import",
+
+  "exportSuccess": "Data exported successfully.",
+  "exportError": "Export error: {error}",
+  "importSuccess": "Data imported successfully.",
+  "importError": "Import error: {error}",
+
+  "aboutVersion": "Version {version}",
+  "disabledLabel": "Disabled",
+
+  "intakeCountWithTarget": "{count}/{target} times",
+  "intakeCountNoTarget": "{count} times",
+
+  "dosageChangeLabel": "Dosage: {oldDosage} → {newDosage}",
+  "dosagePrefix": "Dosage: "
+}

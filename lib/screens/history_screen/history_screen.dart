@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/pill_service.dart';
 import 'dosage_change_card.dart';
 import 'intake_card.dart';
@@ -44,15 +45,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Storico assunzioni'),
+        title: Text(S.of(context)!.historyTitle),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _entries.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(
-                    'Nessuna assunzione registrata.',
-                    style: TextStyle(color: Colors.grey),
+                    S.of(context)!.noHistoryYet,
+                    style: const TextStyle(color: Colors.grey),
                   ),
                 )
               : RefreshIndicator(

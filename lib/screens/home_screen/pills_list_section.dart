@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../data/app_database.dart';
+import '../../l10n/app_localizations.dart';
 
-/// Sezione con la lista di tutte le pillole programmate
+/// Section with the list of all scheduled pills
 class PillsListSection extends StatelessWidget {
   final List<Pill> pills;
   final ValueChanged<Pill> onEdit;
@@ -28,7 +29,7 @@ class PillsListSection extends StatelessWidget {
               const Icon(Icons.list, color: Colors.blue),
               const SizedBox(width: 8),
               Text(
-                'Le tue pillole',
+                S.of(context)!.myPills,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -37,13 +38,13 @@ class PillsListSection extends StatelessWidget {
           ),
         ),
         if (pills.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(32),
+          Padding(
+            padding: const EdgeInsets.all(32),
             child: Center(
               child: Text(
-                'Nessuna pillola programmata.\nPremi + per aggiungerne una.',
+                S.of(context)!.noPillsYet,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
+                style: const TextStyle(color: Colors.grey),
               ),
             ),
           )
@@ -70,16 +71,17 @@ class PillCardWidget extends StatelessWidget {
     required this.onDelete,
   });
 
-  Widget _buildSubtitle(Pill pill) {
+  Widget _buildSubtitle(BuildContext context, Pill pill) {
     final count = pill.totalIntakeCount;
     final children = <Widget>[];
 
     children.add(Text('${pill.quantity} • ${pill.time}'));
 
     if (count != null && count > 0) {
+      final s = S.of(context)!;
       final countText = pill.totalDoses != null
-          ? '$count/${pill.totalDoses} volte'
-          : '$count volte';
+          ? s.intakeCountWithTarget('$count', '${pill.totalDoses}')
+          : s.intakeCountNoTarget('$count');
       children.add(
         Text(
           countText,
@@ -90,9 +92,9 @@ class PillCardWidget extends StatelessWidget {
 
     if (pill.isDisabled) {
       children.add(
-        const Text(
-          'Disabilitata',
-          style: TextStyle(fontSize: 12, color: Colors.orange, fontWeight: FontWeight.w500),
+        Text(
+          S.of(context)!.disabledLabel,
+          style: const TextStyle(fontSize: 12, color: Colors.orange, fontWeight: FontWeight.w500),
         ),
       );
     }
@@ -128,19 +130,19 @@ class PillCardWidget extends StatelessWidget {
               color: disabled ? Colors.grey : null,
             ),
           ),
-          subtitle: _buildSubtitle(pill),
+          subtitle: _buildSubtitle(context, pill),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
                 icon: const Icon(Icons.edit, size: 20),
                 onPressed: onEdit,
-                tooltip: 'Modifica',
+                tooltip: S.of(context)!.editTooltip,
               ),
               IconButton(
                 icon: const Icon(Icons.delete, size: 20),
                 onPressed: onDelete,
-                tooltip: 'Elimina',
+                tooltip: S.of(context)!.deleteTooltip,
                 color: Colors.red,
               ),
             ],

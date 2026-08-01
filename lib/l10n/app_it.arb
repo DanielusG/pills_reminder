@@ -1,0 +1,76 @@
+{
+  "@@locale": "it",
+
+  "appName": "Pill Reminder",
+  "appDescription": "Tieni traccia delle tue assunzioni farmacologiche con promemoria giornalieri.",
+
+  "myPills": "Le tue pillole",
+  "noPillsYet": "Nessuna pillola programmata.\nPremi + per aggiungerne una.",
+
+  "overdueSection": "Da assumere",
+  "takenButton": "Assunta",
+
+  "deleteDialogTitle": "Elimina pillola?",
+  "deleteDialogContent": "Questa azione eliminerà anche lo storico delle assunzioni.",
+  "cancelButton": "Annulla",
+  "deleteButton": "Elimina",
+
+  "addPillFab": "Nuova pillola",
+  "editTooltip": "Modifica",
+  "deleteTooltip": "Elimina",
+
+  "addPillTitle": "Nuova pillola",
+  "editPillTitle": "Modifica pillola",
+  "saveChangesButton": "Salva modifiche",
+  "addPillButton": "Aggiungi pillola",
+
+  "medicationNameLabel": "Nome farmaco",
+  "medicationNameHint": "Es. Ibuprofene, Omeprazolo",
+  "medicationNameValidator": "Inserisci il nome del farmaco",
+
+  "intakeTimeLabel": "Ora assunzione",
+
+  "dosageLabel": "Quantità / Dosaggio",
+  "dosageHint": "Es. 1 compressa, 5ml, 2 capsule",
+  "dosageValidator": "Inserisci il dosaggio",
+
+  "totalDosesLabel": "Dosi totali (opzionale)",
+  "totalDosesHint": "Es. 30",
+  "totalDosesValidator": "Inserisci un numero valido maggiore di 0",
+
+  "disableLabel": "Disabilita",
+  "disableSubtitle": "Non inviare notifiche per questa pillola",
+
+  "errorPrefix": "Errore: {error}",
+
+  "intakeDialogTitle": "Hai assunto {pillName}?",
+  "noButton": "No",
+  "yesTakenButton": "Sì, assunta",
+
+  "historyTitle": "Storico assunzioni",
+  "noHistoryYet": "Nessuna assunzione registrata.",
+
+  "settingsTitle": "Impostazioni",
+  "exportDataTitle": "Esporta dati",
+  "exportDataSubtitle": "Salva farmaci e storico in un file JSON",
+  "importDataTitle": "Importa dati",
+  "importDataSubtitle": "Ripristina da un file di backup",
+
+  "importConfirmTitle": "Sostituire i dati?",
+  "importConfirmContent": "L'importazione cancellerà tutti i dati attuali e li sostituirà con quelli dal backup.\nQuesta azione non può essere annullata.",
+  "importButton": "Importa",
+
+  "exportSuccess": "Dati esportati con successo.",
+  "exportError": "Errore durante l'esportazione: {error}",
+  "importSuccess": "Dati importati con successo.",
+  "importError": "Errore durante l'importazione: {error}",
+
+  "aboutVersion": "Versione {version}",
+  "disabledLabel": "Disabilitata",
+
+  "intakeCountWithTarget": "{count}/{target} volte",
+  "intakeCountNoTarget": "{count} volte",
+
+  "dosageChangeLabel": "Dosaggio: {oldDosage} → {newDosage}",
+  "dosagePrefix": "Dosaggio: "
+}

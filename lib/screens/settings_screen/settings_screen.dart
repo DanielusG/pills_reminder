@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../services/import_export_service.dart';
 import 'about_section.dart';
 
@@ -24,11 +25,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await _service.exportData();
       if (mounted) {
-        _showSnackBar('Dati esportati con successo.');
+        _showSnackBar(S.of(context)!.exportSuccess);
       }
     } catch (e) {
       if (mounted) {
-        _showSnackBar('Errore durante l\'esportazione: $e');
+        _showSnackBar(S.of(context)!.exportError(e.toString()));
       }
     } finally {
       if (mounted) {
@@ -56,20 +57,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.warning, color: Colors.orange),
-        title: const Text('Sostituire i dati?'),
-        content: const Text(
-          'L\'importazione cancellerà tutti i dati attuali e li sostituirà con quelli dal backup. '
-          'Questa azione non può essere annullata.',
-        ),
+        title: Text(S.of(context)!.importConfirmTitle),
+        content: Text(S.of(context)!.importConfirmContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Annulla'),
+            child: Text(S.of(context)!.cancelButton),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: FilledButton.styleFrom(backgroundColor: Colors.orange),
-            child: const Text('Importa'),
+            child: Text(S.of(context)!.importButton),
           ),
         ],
       ),
@@ -84,13 +82,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await _service.importData(fileBytes);
 
       if (mounted) {
-        _showSnackBar('Dati importati con successo.');
+        _showSnackBar(S.of(context)!.importSuccess);
         // Torna alla home per vedere i dati aggiornati
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } catch (e) {
       if (mounted) {
-        _showSnackBar('Errore durante l\'importazione: $e');
+        _showSnackBar(S.of(context)!.importError(e.toString()));
       }
     } finally {
       if (mounted) {
@@ -112,7 +110,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Impostazioni'),
+        title: Text(S.of(context)!.settingsTitle),
       ),
       body: _isProcessing
           ? const Center(child: CircularProgressIndicator())
@@ -120,19 +118,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.download),
-                  title: const Text('Esporta dati'),
-                  subtitle: const Text(
-                    'Salva farmaci e storico in un file JSON',
-                  ),
+                  title: Text(S.of(context)!.exportDataTitle),
+                  subtitle: Text(S.of(context)!.exportDataSubtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: _handleExport,
                 ),
                 ListTile(
                   leading: const Icon(Icons.upload),
-                  title: const Text('Importa dati'),
-                  subtitle: const Text(
-                    'Ripristina da un file di backup',
-                  ),
+                  title: Text(S.of(context)!.importDataTitle),
+                  subtitle: Text(S.of(context)!.importDataSubtitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: _handleImport,
                 ),

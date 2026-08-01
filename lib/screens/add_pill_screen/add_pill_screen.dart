@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/app_database.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/pill_service.dart';
 import 'name_field.dart';
 import 'quantity_field.dart';
@@ -93,7 +94,7 @@ class _AddPillScreenState extends State<AddPillScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Errore: $e')),
+          SnackBar(content: Text(S.of(context)!.errorPrefix(e.toString()))),
         );
       }
     }
@@ -105,7 +106,7 @@ class _AddPillScreenState extends State<AddPillScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? 'Modifica pillola' : 'Nuova pillola'),
+        title: Text(isEditing ? S.of(context)!.editPillTitle : S.of(context)!.addPillTitle),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -126,8 +127,8 @@ class _AddPillScreenState extends State<AddPillScreen> {
               TotalDosesField(controller: _totalDosesController),
               const SizedBox(height: 16),
               SwitchListTile(
-                title: const Text('Disabilita'),
-                subtitle: const Text('Non inviare notifiche per questa pillola'),
+                title: Text(S.of(context)!.disableLabel),
+                subtitle: Text(S.of(context)!.disableSubtitle),
                 value: _isDisabled,
                 onChanged: (value) => setState(() => _isDisabled = value),
                 secondary: const Icon(Icons.not_started_outlined),
@@ -135,7 +136,7 @@ class _AddPillScreenState extends State<AddPillScreen> {
               const SizedBox(height: 32),
               FilledButton(
                 onPressed: _save,
-                child: Text(isEditing ? 'Salva modifiche' : 'Aggiungi pillola'),
+                child: Text(isEditing ? S.of(context)!.saveChangesButton : S.of(context)!.addPillButton),
               ),
             ],
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 
-/// Campo di input opzionale per le dosi totali (target)
+/// Optional total doses (target) input field
 class TotalDosesField extends StatelessWidget {
   final TextEditingController controller;
 
@@ -11,8 +12,8 @@ class TotalDosesField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(
-        labelText: 'Dosi totali (opzionale)',
-        hintText: 'Es. 30',
+        labelText: S.of(context)!.totalDosesLabel,
+        hintText: S.of(context)!.totalDosesHint,
         prefixIcon: const Icon(Icons.pin),
         border: const OutlineInputBorder(),
       ),
@@ -21,7 +22,7 @@ class TotalDosesField extends StatelessWidget {
         if (value != null && value.trim().isNotEmpty) {
           final parsed = int.tryParse(value.trim());
           if (parsed == null || parsed <= 0) {
-            return 'Inserisci un numero valido maggiore di 0';
+            return S.of(context)!.totalDosesValidator;
           }
         }
         return null;

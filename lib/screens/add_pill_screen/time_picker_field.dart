@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 
-/// Campo per selezionare l'ora di assunzione
+/// Time picker for intake time
 class TimePickerField extends StatelessWidget {
   final TimeOfDay selectedTime;
   final ValueChanged<TimeOfDay> onTimeChanged;
@@ -19,10 +20,10 @@ class TimePickerField extends StatelessWidget {
         text: '${selectedTime.hour.toString().padLeft(2, '0')}:'
             '${selectedTime.minute.toString().padLeft(2, '0')}',
       ),
-      decoration: const InputDecoration(
-        labelText: 'Ora assunzione',
-        prefixIcon: Icon(Icons.access_time),
-        border: OutlineInputBorder(),
+      decoration: InputDecoration(
+        labelText: S.of(context)!.intakeTimeLabel,
+        prefixIcon: const Icon(Icons.access_time),
+        border: const OutlineInputBorder(),
       ),
       onTap: () async {
         final picked = await showTimePicker(

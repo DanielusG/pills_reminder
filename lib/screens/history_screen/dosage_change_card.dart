@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/pill_service.dart';
 
-/// Card per un cambiamento di dosaggio nello storico
+/// Card for a dosage change in history
 class DosageChangeCard extends StatelessWidget {
   final DosageChangeEntry entry;
 
@@ -24,7 +25,7 @@ class DosageChangeCard extends StatelessWidget {
           text: TextSpan(
             style: theme.textTheme.bodyMedium,
             children: [
-              const TextSpan(text: 'Dosaggio: '),
+              TextSpan(text: S.of(context)!.dosagePrefix),
               TextSpan(
                 text: entry.oldDosage,
                 style: const TextStyle(decoration: TextDecoration.lineThrough),

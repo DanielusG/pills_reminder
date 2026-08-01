@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../data/app_database.dart';
+import '../../l10n/app_localizations.dart';
 
-/// Card che rappresenta una pillola nella lista
+/// Card representing a pill in the list
 class PillCard extends StatelessWidget {
   final Pill pill;
   final VoidCallback onEdit;
@@ -17,6 +18,7 @@ class PillCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final s = S.of(context)!;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -30,12 +32,12 @@ class PillCard extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.edit, size: 20),
               onPressed: onEdit,
-              tooltip: 'Modifica',
+              tooltip: s.editTooltip,
             ),
             IconButton(
               icon: const Icon(Icons.delete, size: 20),
               onPressed: onDelete,
-              tooltip: 'Elimina',
+              tooltip: s.deleteTooltip,
               color: Colors.red,
             ),
           ],

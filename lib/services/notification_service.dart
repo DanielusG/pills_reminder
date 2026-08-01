@@ -1,8 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
-/// Servizio per la gestione delle notifiche locali
+/// Local notification service
 class NotificationService extends ChangeNotifier {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -10,7 +12,7 @@ class NotificationService extends ChangeNotifier {
 
   final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
 
-  /// Inizializza il plugin notifiche
+  /// Initialize the notification plugin
   Future<void> initialize() async {
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -30,11 +32,11 @@ class NotificationService extends ChangeNotifier {
       onDidReceiveNotificationResponse: _onNotificationTap,
     );
 
-    // Richiedi permesso notifiche su Android 13+
+    // Request notification permission on Android 13+
     await _requestPermissions();
   }
 
-  /// Richiede i permessi per le notifiche
+  /// Request notification permissions
   Future<void> _requestPermissions() async {
     final androidImpl = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
@@ -49,7 +51,7 @@ class NotificationService extends ChangeNotifier {
     );
   }
 
-  /// Schedula una notifica giornaliera per una pillola
+  /// Schedule a daily notification for a pill
   Future<void> scheduleDailyNotification({
     required int id,
     required String name,
@@ -68,20 +70,22 @@ class NotificationService extends ChangeNotifier {
       hour,
       minute,
     );
-    // DateTime() usa l'orario locale del dispositivo.
-    // tz.TZDateTime.from() preserva l'istante esatto convertendolo in TZDateTime.
+    // DateTime() uses the device's local time zone.
+    // tz.TZDateTime.from() preserves the exact instant, converting to TZDateTime.
     final scheduledDate = tz.TZDateTime.from(localDate, tz.getLocation('Etc/UTC'));
 
+    final locale = Platform.localeName.substring(0, 2);
+    final body = _formatNotificationBody(locale, quantity);
     await _plugin.zonedSchedule(
       id: id,
       title: name,
-      body: 'È ora di assumere: $quantity',
+      body: body,
       scheduledDate: scheduledDate,
-      notificationDetails: const NotificationDetails(
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           'pills_channel',
-          'Promemoria Pillole',
-          channelDescription: 'Notifiche per l\'assunzione dei farmaci',
+          _getChannelName(locale),
+          channelDescription: _getChannelDescription(locale),
           importance: Importance.max,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
@@ -97,19 +101,49 @@ class NotificationService extends ChangeNotifier {
     );
   }
 
-  /// Cancella una notifica schedulata
+  String _formatNotificationBody(String locale, String quantity) {
+    switch (locale) {
+      case 'it':
+        return 'È ora di assumere: $quantity';
+      case 'en':
+      default:
+        return 'Time to take: $quantity';
+    }
+  }
+
+  String _getChannelName(String locale) {
+    switch (locale) {
+      case 'it':
+        return 'Promemoria Pillole';
+      case 'en':
+      default:
+        return 'Pill Reminders';
+    }
+  }
+
+  String _getChannelDescription(String locale) {
+    switch (locale) {
+      case 'it':
+        return 'Notifiche per l\'assunzione dei farmaci';
+      case 'en':
+      default:
+        return 'Notifications for medication intake';
+    }
+  }
+
+  /// Cancel a scheduled notification
   Future<void> cancelNotification(int id) async {
     await _plugin.cancel(id: id);
   }
 
-  /// Cancella tutte le notifiche
+  /// Cancel all notifications
   Future<void> cancelAll() async {
     await _plugin.cancelAll();
   }
 
-  /// Callback quando l'utente tap sulla notifica
+  /// Callback when user taps a notification
   void _onNotificationTap(NotificationResponse response) {
-    // Notifica i listener (HomeScreen) per triggerare un refresh
+    // Notify listeners (HomeScreen) to trigger a refresh
     notifyListeners();
   }
 }

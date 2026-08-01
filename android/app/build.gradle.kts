@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.pills_reminder"
+    namespace = "io.github.danielusg.pills_reminder"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.pills_reminder"
+        applicationId = "io.github.danielusg.pills_reminder"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 
-/// Campo di input per il nome del farmaco
+/// Input field for medication name
 class NameField extends StatelessWidget {
   final TextEditingController controller;
 
@@ -10,15 +11,15 @@ class NameField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
-      decoration: const InputDecoration(
-        labelText: 'Nome farmaco',
-        hintText: 'Es. Ibuprofene, Omeprazolo',
-        prefixIcon: Icon(Icons.medication),
-        border: OutlineInputBorder(),
+      decoration: InputDecoration(
+        labelText: S.of(context)!.medicationNameLabel,
+        hintText: S.of(context)!.medicationNameHint,
+        prefixIcon: const Icon(Icons.medication),
+        border: const OutlineInputBorder(),
       ),
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
-          return 'Inserisci il nome del farmaco';
+          return S.of(context)!.medicationNameValidator;
         }
         return null;
       },
