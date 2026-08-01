@@ -23,13 +23,29 @@ void main() async {
   runApp(const PillsReminderApp());
 }
 
+Locale _resolveLocale(Iterable<Locale>? locales, Iterable<Locale> supportedLocales) {
+  if (locales == null || locales.isEmpty) {
+    return supportedLocales.first;
+  }
+
+  for (final locale in locales) {
+    for (final supported in supportedLocales) {
+      if (supported.languageCode == locale.languageCode) {
+        return supported;
+      }
+    }
+  }
+
+  return supportedLocales.first;
+}
+
 class PillsReminderApp extends StatelessWidget {
   const PillsReminderApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: S.of(context)!.appName,
+      title: 'Pill Reminder',
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
         S.delegate,
@@ -38,6 +54,7 @@ class PillsReminderApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: S.supportedLocales,
+      localeListResolutionCallback: _resolveLocale,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.blue,
