@@ -9,6 +9,7 @@ class Pill {
   final String quantity;
   final DateTime createdAt;
   final int? totalDoses;         // target dosi totali (null = nessun target)
+  final bool isDisabled;         // pillola disabilitata (niente notifiche)
   final int? totalIntakeCount;   // conteggio storico assunzioni (null = non caricato)
 
   Pill({
@@ -18,6 +19,7 @@ class Pill {
     required this.quantity,
     required this.createdAt,
     this.totalDoses,
+    this.isDisabled = false,
     this.totalIntakeCount,
   });
 
@@ -34,6 +36,7 @@ class Pill {
     if (totalDoses != null) {
       map['total_doses'] = totalDoses;
     }
+    map['is_disabled'] = isDisabled ? 1 : 0;
     return map;
   }
 
@@ -45,6 +48,7 @@ class Pill {
       quantity: map['quantity'] as String,
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
       totalDoses: map['total_doses'] as int?,
+      isDisabled: (map['is_disabled'] as int?) == 1,
       totalIntakeCount: map['total_intake_count'] as int?,
     );
   }
@@ -54,6 +58,7 @@ class Pill {
     String? time,
     String? quantity,
     int? totalDoses,
+    bool? isDisabled,
   }) {
     return Pill(
       id: id,
@@ -62,6 +67,7 @@ class Pill {
       quantity: quantity ?? this.quantity,
       createdAt: createdAt,
       totalDoses: totalDoses ?? this.totalDoses,
+      isDisabled: isDisabled ?? this.isDisabled,
     );
   }
 }
@@ -159,7 +165,7 @@ class AppDatabase {
 
     return openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _createTables,
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -177,6 +183,9 @@ class AppDatabase {
         if (oldVersion < 3) {
           await db.execute('ALTER TABLE pills ADD COLUMN total_doses INTEGER');
         }
+        if (oldVersion < 4) {
+          await db.execute('ALTER TABLE pills ADD COLUMN is_disabled INTEGER DEFAULT 0');
+        }
       },
     );
   }
@@ -189,7 +198,8 @@ class AppDatabase {
         time TEXT NOT NULL,
         quantity TEXT NOT NULL,
         created_at INTEGER NOT NULL,
-        total_doses INTEGER
+        total_doses INTEGER,
+        is_disabled INTEGER DEFAULT 0
       )
     ''');
 
@@ -221,6 +231,7 @@ class AppDatabase {
     required String time,
     required String quantity,
     int? totalDoses,
+    bool isDisabled = false,
   }) async {
     final db = await database;
     final now = DateTime.now();
@@ -230,6 +241,7 @@ class AppDatabase {
       quantity: quantity,
       createdAt: now,
       totalDoses: totalDoses,
+      isDisabled: isDisabled,
     ).toMap());
 
     // Entry iniziale nel log dei dosaggi

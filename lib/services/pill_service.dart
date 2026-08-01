@@ -12,15 +12,17 @@ class PillService {
     required String time,
     required String quantity,
     int? totalDoses,
+    bool isDisabled = false,
   }) async {
     final id = await _db.insertPill(
       name: name,
       time: time,
       quantity: quantity,
       totalDoses: totalDoses,
+      isDisabled: isDisabled,
     );
     final pill = await _db.getPillById(id);
-    if (pill != null) {
+    if (pill != null && !pill.isDisabled) {
       await _notif.scheduleDailyNotification(
         id: id,
         name: pill.name,
@@ -33,14 +35,30 @@ class PillService {
 
   /// Aggiorna una pillola esistente
   Future<void> updatePill(Pill pill) async {
+    final current = await _db.getPillById(pill.id!);
     await _db.updatePill(pill);
-    await _notif.cancelNotification(pill.id!);
-    await _notif.scheduleDailyNotification(
-      id: pill.id!,
-      name: pill.name,
-      quantity: pill.quantity,
-      time: pill.time,
-    );
+
+    if (pill.isDisabled) {
+      // Pillola disabilitata → rimuovi notifica
+      await _notif.cancelNotification(pill.id!);
+    } else if (current == null || current.isDisabled) {
+      // Pillola appena abilitata → schedula notifica
+      await _notif.scheduleDailyNotification(
+        id: pill.id!,
+        name: pill.name,
+        quantity: pill.quantity,
+        time: pill.time,
+      );
+    } else {
+      // Pillola già abilitata → ricancella e rischedula (es. orario cambiato)
+      await _notif.cancelNotification(pill.id!);
+      await _notif.scheduleDailyNotification(
+        id: pill.id!,
+        name: pill.name,
+        quantity: pill.quantity,
+        time: pill.time,
+      );
+    }
   }
 
   /// Elimina una pillola e la sua notifica
@@ -62,6 +80,8 @@ class PillService {
     final overdue = <Pill>[];
 
     for (final pill in allPills) {
+      if (pill.isDisabled) continue;
+
       final isTaken = await _db.isTakenToday(pill.id!);
       if (isTaken) continue;
 

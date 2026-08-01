@@ -22,6 +22,7 @@ class _AddPillScreenState extends State<AddPillScreen> {
   late final TextEditingController _quantityController;
   late final TextEditingController _totalDosesController;
   late TimeOfDay _selectedTime;
+  late bool _isDisabled;
 
   final _service = PillService();
 
@@ -34,6 +35,7 @@ class _AddPillScreenState extends State<AddPillScreen> {
     _totalDosesController = TextEditingController(
       text: pill?.totalDoses?.toString() ?? '',
     );
+    _isDisabled = pill?.isDisabled ?? false;
 
     if (pill != null) {
       final parts = pill.time.split(':');
@@ -75,6 +77,7 @@ class _AddPillScreenState extends State<AddPillScreen> {
           time: time,
           quantity: _quantityController.text.trim(),
           totalDoses: totalDoses,
+          isDisabled: _isDisabled,
         );
       } else {
         final updated = widget.pill!.copyWith(
@@ -82,6 +85,7 @@ class _AddPillScreenState extends State<AddPillScreen> {
           time: time,
           quantity: _quantityController.text.trim(),
           totalDoses: totalDoses,
+          isDisabled: _isDisabled,
         );
         await _service.updatePill(updated);
       }
@@ -120,6 +124,14 @@ class _AddPillScreenState extends State<AddPillScreen> {
               QuantityField(controller: _quantityController),
               const SizedBox(height: 16),
               TotalDosesField(controller: _totalDosesController),
+              const SizedBox(height: 16),
+              SwitchListTile(
+                title: const Text('Disabilita'),
+                subtitle: const Text('Non inviare notifiche per questa pillola'),
+                value: _isDisabled,
+                onChanged: (value) => setState(() => _isDisabled = value),
+                secondary: const Icon(Icons.not_started_outlined),
+              ),
               const SizedBox(height: 32),
               FilledButton(
                 onPressed: _save,
